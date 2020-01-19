@@ -2,6 +2,6 @@
 /* eslint-disable */
 /**
 * @param {string} search 
-* @returns {string} 
+* @returns {any} 
 */
-export function query_current_search(search: string): string;
+export function query_current_search(search: string): any;

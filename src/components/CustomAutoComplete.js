@@ -4,6 +4,9 @@ import TextField from "@material-ui/core/TextField";
 import Autocomplete from "@material-ui/lab/Autocomplete";
 import CircularProgress from "@material-ui/core/CircularProgress";
 import throttle from "lodash/throttle";
+import flattenDeep from "lodash/flattenDeep";
+import map from "lodash/flattenDeep";
+import { instantiateStreaming } from "assemblyscript/lib/loader";
 
 function sleep(delay = 0) {
   return new Promise(resolve => {
@@ -12,24 +15,46 @@ function sleep(delay = 0) {
 }
 
 const CustomAutoComplete = props => {
+  const [wasm, setWasm] = React.useState({});
   const [open, setOpen] = React.useState(false);
   const [inputValue, setInputValue] = React.useState("");
   const [options, setOptions] = React.useState([]);
   const loading = open && options.length === 0;
 
-  const handleChange = event => {
+  const handleChange = async event => {
     setInputValue(event.target.value);
+    wasm.query_current_search &&
+      props.wasm.query_current_search(event.target.value).then(results => {
+        if (!results) {
+          return;
+        }
+        const airports = JSON.parse(results);
+        if (true) {
+          console.log(airports.data);
+
+          setOptions(
+            airports.data.map(airport => {
+              return { name: airport };
+            })
+          );
+        }
+      });
   };
 
   const fetchData = React.useMemo(
-    () =>
-      throttle((input, callback) => {
-        fetch(
-          `https://hack-2020-flask.herokuapp.com/while_typing?text=${input}`
-        ).then(callback);
-      }, 200),
+    () => throttle(async (input, callback) => {}, 200),
     []
   );
+
+  React.useEffect(async () => {
+    try {
+      const test = await import("external");
+      console.log(test);
+      setWasm(test);
+    } catch (err) {
+      console.error(`Unexpected error in loadWasm. [Message: ${err.message}]`);
+    }
+  }, []);
 
   React.useEffect(() => {
     let active = true;
@@ -37,28 +62,33 @@ const CustomAutoComplete = props => {
     if (!loading) {
       return undefined;
     }
-
-    fetchData({ input: inputValue }, results => {
-      const airports = results.json().then(data => data);
+    fetchData({ input: inputValue }, async results => {
+      const airports = await results.json();
       if (active) {
-        setOptions(Object.keys(airports).map(key => airports[key].item[0]));
+        console.log(airports.data);
+
+        setOptions(
+          airports.data.map(airport => {
+            return { name: airport };
+          })
+        );
       }
     });
 
     return () => {
       active = false;
     };
-  }, [loading]);
+  }, [inputValue, fetchData, loading]);
 
   React.useEffect(() => {
     if (!open) {
       setOptions([]);
     }
-  }, [inputValue, fetch, open]);
+  }, [open]);
 
   return (
     <Autocomplete
-      id={`autcomp-${props.key}`}
+      id={`autcomp-${props.type}`}
       style={{ width: 250 }}
       open={open}
       onOpen={() => {
@@ -69,13 +99,16 @@ const CustomAutoComplete = props => {
       }}
       getOptionSelected={(option, value) => option.name === value.name}
       getOptionLabel={option => option.name}
+      autoComplete
       options={options}
       loading={loading}
+      disableOpenOnFocus
       renderInput={params => (
         <TextField
           {...params}
           label={`${props.type}`}
           fullWidth
+          name={props.type}
           onChange={handleChange}
           variant="outlined"
           InputProps={{

@@ -35,7 +35,7 @@ const Flight = props => {
     <div className={classes.root}>
       <Paper className={classes.paper}>
         <Grid container spacing={1}>
-          <Grid container direction="column" xs={11} item spacing={3}>
+          <Grid container direction="column" xs={10} item spacing={3}>
             <Grid container item>
               <Grid container direction="column" xs={3} item>
                 <Typography variant="body2" color="textSecondary">
@@ -79,8 +79,10 @@ const Flight = props => {
             <Grid item xs={12} sm container></Grid>
           </Grid>
 
-          <Grid xs={1} justify="center" time>
-            <Typography variant="h4">$190.74</Typography>
+          <Grid xs={2} justify="center" time>
+            <Typography variant="h4">
+              ${`${props.flight.node.fareInfo.totalPrice}`}
+            </Typography>
           </Grid>
         </Grid>
       </Paper>

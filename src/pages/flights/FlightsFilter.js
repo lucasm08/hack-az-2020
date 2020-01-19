@@ -9,6 +9,7 @@ import DateFnsUtils from "@date-io/date-fns";
 import Fab from "@material-ui/core/Fab";
 import SearchIcon from "@material-ui/icons/Search";
 import CustomAutoComplete from "../../components/CustomAutoComplete";
+import Button from "@material-ui/core/Button";
 
 import {
   MuiPickersUtilsProvider,
@@ -27,19 +28,36 @@ const FlightsFilter = props => {
   const classes = useStyles();
   const [alignment, setAlignment] = React.useState("left");
   const handleChange = (event, newAlignment) => {
+    if (newAlignment === "left") {
+      props.setRoundTrip(true);
+    } else {
+      props.setRoundTrip(false);
+    }
     setAlignment(newAlignment);
   };
 
-  const [selectedDate, setSelectedDate] = React.useState(
-    new Date("2014-08-18T21:11:54")
+  const [selectedStartDate, setSelectedStartDate] = React.useState(
+    new Date("2020-01-30T21:11:54")
   );
 
-  const handleDateChange = date => {
-    setSelectedDate(date);
+  const [selectedEndDate, setSelectedEndDate] = React.useState(
+    new Date("2020-01-30T21:11:54")
+  );
+
+  const handleStartDateChange = date => {
+    console.log(date);
+    setSelectedStartDate(date);
+    props.setStartDate(date);
+  };
+
+  const handleEndDateChange = date => {
+    console.log(date);
+    setSelectedEndDate(date);
+    props.setEndDate(date);
   };
 
   return (
-    <form>
+    <form onSubmit={props.getFormData}>
       <Grid container spacing={2} direction="column" alignItems="center">
         <Grid item>
           <ToggleButtonGroup
@@ -61,36 +79,40 @@ const FlightsFilter = props => {
         <Grid item>
           <Grid container justify="center" spacing={6}>
             <Grid key={1} item>
-              <CustomAutoComplete key={1} type={"Origin"} wasm={props.wasm} />
+              <CustomAutoComplete
+                key={"origin"}
+                type={"Origin"}
+                wasm={props.wasm}
+              />
             </Grid>
-            <Grid key={2} item>
-              <Autocomplete
-                id="destination"
-                options={airports}
-                getOptionLabel={option =>
-                  `${option.title}, ${option.city} , ${option.country}`
-                }
-                style={{ width: 220 }}
-                renderInput={params => (
-                  <TextField
-                    {...params}
-                    label="Destination"
-                    variant="outlined"
-                    fullWidth
-                  />
-                )}
+            <Grid key={"destination"} item>
+              <CustomAutoComplete
+                key={"destination"}
+                type={"Destination"}
+                wasm={props.wasm}
               />
             </Grid>
             <Grid key={3} item>
               <MuiPickersUtilsProvider utils={DateFnsUtils}>
-                <DatePicker value={selectedDate} onChange={handleDateChange} />
-                <DatePicker value={selectedDate} onChange={handleDateChange} />
+                <DatePicker
+                  value={selectedStartDate}
+                  onChange={handleStartDateChange}
+                />
+                <DatePicker
+                  value={selectedEndDate}
+                  onChange={handleEndDateChange}
+                />
               </MuiPickersUtilsProvider>
             </Grid>
             <Grid key={4} item>
-              <Fab color="primary" aria-label="add">
-                <SearchIcon />
-              </Fab>
+              <Button
+                variant="contained"
+                type="submit"
+                color="primary"
+                disableElevation
+              >
+                Submit
+              </Button>
             </Grid>
           </Grid>
         </Grid>
